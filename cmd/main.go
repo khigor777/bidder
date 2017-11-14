@@ -11,6 +11,8 @@ func main()  {
 	if e != nil{
 		fmt.Println(e)
 	}
+	//pool := bidder.NewRedisPool(c)
+
 	fmt.Println(c.Server)
 
 }
