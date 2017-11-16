@@ -2,7 +2,6 @@ package main
 
 import (
 	"try/bidder"
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
 )
@@ -10,14 +9,17 @@ import (
 func main() {
 
 	c, e := bidder.ReadConfig("config.json")
+
 	if e != nil {
-		fmt.Println(e)
+		panic(e)
 	}
 
 	pool := bidder.NewRedisPool(c)
 	handlers := bidder.NewHandlers(pool, c)
 
+	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+
 	r.Use(handlers.AddStatMiddleware)
 	r.POST("/", handlers.IncrementIfaStat)
 	r.GET("/stats", handlers.GetStat)

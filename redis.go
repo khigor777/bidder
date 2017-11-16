@@ -39,22 +39,15 @@ func NewRedisPool(config *Config) *RedisPool {
 	}
 }
 
-func (rp *RedisPool) IncrIfa(st *StatisticsForIfa, lifeTime int) (s string, e error){
+func (rp *RedisPool) IncrIfa(st *StatisticsForIfa, lifeTime int)(int64, error) {
 	c := rp.Get()
 	defer c.Close()
-	c.Send("MULTI")
-	c.Send("INCR", st.Device.Ifa)
-	c.Flush()
-
-	c.Send("EXPIRE", st.Device.Ifa, lifeTime)
-
-	r, err := redis.Bytes(c.Receive())
-	fmt.Println(r)
-	if err != nil{
-		return "", err
+	r, e:= redis.Int64(c.Do("INCR", st.Device.Ifa))
+	c.Do("EXPIRE", st.Device.Ifa, lifeTime)
+	if e != nil{
+		return 0, e
 	}
-	return string(r), nil
-
+	return r, nil
 }
 
 func (rp *RedisPool) AddStat(st *Statistics)  error {
@@ -81,7 +74,7 @@ func (rp *RedisPool) getStat(cmd string) (result []ReturnStatistics) {
 	defer con.Close()
 	values, err := redis.Values(con.Do(cmd, StatisticsKey, 0, -1, "WITHSCORES"))
 	if err != nil {
-		log.Println(err)
+		log.Fatal(err)
 	}
 
 	pairs := make([]StringInt, len(values)/2)
@@ -106,9 +99,3 @@ func stringToStruct(str string, count int) ReturnStatistics{
 	return ReturnStatistics{}
 
 }
-/*
-127.0.0.1:6379> zincrby most_popular 1 rus:com.err:android
-127.0.0.1:6379> zincrby most_popular 1 rus:302324249:android
-ZREVRANGE most_popular 0 -1 WITHSCORES // all sorted keys
-zrange key 0 -1 // all keys
-*/
