@@ -1,33 +1,35 @@
 package bidder
 
 import (
-	"io/ioutil"
 	"encoding/json"
+	"io/ioutil"
 	"os"
 )
 
 type Config struct {
-	Server string `json:"server"`
-	Port string  `json:"port"`
+	Server      string `json:"server"`
+	Port        string `json:"port"`
+	ShortSeries int    `json:"short_series"`
+	LongSeries  int    `json:"long_series"`
 }
-
 
 func ReadConfig(configFile string) (*Config, error) {
 
-	if _, err := os.Stat(configFile); os.IsNotExist(err){
+	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		return nil, err
 	}
 
 	f, err := ioutil.ReadFile(configFile)
 
-	if err != nil{
+	if err != nil {
 		return nil, err
 	}
-	var res *Config
-	e := json.Unmarshal(f, &res)
 
-	if e != nil{
-		return nil, e
+	var res *Config
+	err = json.Unmarshal(f, &res)
+
+	if err != nil {
+		return nil, err
 	}
 	return res, nil
 }
